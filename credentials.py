@@ -1,6 +1,6 @@
 import os
 
-CREDENTIAL_FILE = 'creds.txt'
+CREDENTIAL_FILE = '.env'
 
 def get_credentials():
     if os.path.exists(CREDENTIAL_FILE):

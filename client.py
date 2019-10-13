@@ -14,18 +14,23 @@ class RedmineClient:
         self.base_url = base_url
         self.limit = 100
 
-    def _to_json(self, url, page=1):
+    def _to_json(self, url, filter_args=None, page=1):
+        if type(filter_args) is not dict:
+            filter_args = {}
+        filter_args['page'] = page
+        filter_args['limit'] = self.limit
+
         url = self.base_url + url
-        r = get(url=url, headers={'Authorization': self.authorization}, params={'page': page, 'limit': self.limit})
+        r = get(url=url, headers={'Authorization': self.authorization}, params=filter_args)
         if r.status_code >= 400:
             raise BaseException(r)
         return r.json()
 
-    def get_projects(self, page=1):
-        return self._to_json('/projects.json', page)
+    def get_projects(self, *, filter_args=None, page=1):
+        return self._to_json('/projects.json', filter_args, page)
 
-    def get_issues(self, page=1, filter={}):
-        return self._to_json('/issues.json', page)
+    def get_issues(self, *, filter_args=None, page=1):
+        return self._to_json('/issues.json', filter_args, page)
 
     def get_users(self):
         return self._to_json('/users.json')
@@ -36,7 +41,7 @@ def iterate_response(endpoint, data_path):
     total = json['total_count']
     count = 0
     page = 1
-
+    # return
     while count < total:
         for item in json[data_path]:
             yield item

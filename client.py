@@ -1,10 +1,11 @@
 from requests import get, post
 from base64 import b64encode
-from json.decoder import JSONDecodeError
+
 
 class BadRequest(BaseException):
     def __init__(self, response):
         self.response = response
+
 
 class RedmineClient:
     def __init__(self, username, password, base_url):
@@ -19,13 +20,13 @@ class RedmineClient:
         if r.status_code >= 400:
             raise BaseException(r)
         return r.json()
-    
+
     def get_projects(self, page=1):
         return self._to_json('/projects.json', page)
-    
+
     def get_issues(self, page=1, filter={}):
         return self._to_json('/issues.json', page)
-    
+
     def get_users(self):
         return self._to_json('/users.json')
 

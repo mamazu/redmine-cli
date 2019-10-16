@@ -16,14 +16,18 @@ def curry_with_filters(f, filter_args):
 
 result = None
 if args.subject == 'projects':
-    for p in iterate_response(curry_with_filters(rm.get_projects, args.filters), 'projects'):
-        print(p['id'], "|", p['name'], "|", p['description'].strip().replace("\n", "\\n").replace('\r', ''))
+    if args.id is not None:
+        print(rm.get_project_details(args.id))
+    else:
+        for p in iterate_response(curry_with_filters(rm.get_projects, args.filters), 'projects'):
+            print(p['id'], "|", p['name'], "|", p['description'].strip().replace("\n", "\\n").replace('\r', ''))
 elif args.subject == 'issues':
-    for idx, i in enumerate(iterate_response(curry_with_filters(rm.get_issues, args.filters), 'issues')):
-        description = i['description'].strip().replace("\n", "\\n").replace('\r', '')
-        print(i['id'], "|", i['subject'], '|', i['status']['name'], '|', description)
-        if idx == 10:
-            exit()
+    if args.id is not None:
+        print(rm.get_issue(args.id))
+    else:
+        for i in iterate_response(curry_with_filters(rm.get_issues, args.filters), 'issues'):
+            description = i['description'].strip().replace("\n", "\\n").replace('\r', '')
+            print(i['id'], "|", i['subject'], '|', i['status']['name'], '|', description)
 elif args.subject == 'users':
     result = rm.get_users()
 

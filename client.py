@@ -14,7 +14,7 @@ class RedmineClient:
         self.base_url = base_url
         self.limit = 100
 
-    def _to_json(self, url, filter_args=None, page=1):
+    def _to_json(self, url, filter_args=None, page=1) -> dict:
         if type(filter_args) is not dict:
             filter_args = {}
         filter_args['page'] = page
@@ -26,13 +26,19 @@ class RedmineClient:
             raise BaseException(r)
         return r.json()
 
-    def get_projects(self, *, filter_args=None, page=1):
+    def get_projects(self, *, filter_args=None, page=1) -> dict:
         return self._to_json('/projects.json', filter_args, page)
 
-    def get_issues(self, *, filter_args=None, page=1):
+    def get_project_details(self, project_id) -> dict:
+        return self._to_json('/projects/{id}.json'.format(id=project_id))
+    
+    def get_issue(self, issue_id) -> dict:
+        return self._to_json('/issues/{id}.json'.format(id=issue_id))
+
+    def get_issues(self, *, filter_args=None, page=1) -> dict:
         return self._to_json('/issues.json', filter_args, page)
 
-    def get_users(self):
+    def get_users(self) -> dict:
         return self._to_json('/users.json')
 
 

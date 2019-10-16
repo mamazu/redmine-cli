@@ -31,5 +31,5 @@ def print_result(result) -> None:
     if isinstance(result, Iterable):
         for item in result:
             print(item)
-    else:
+    elif result is not None:
         print(result)

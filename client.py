@@ -33,7 +33,7 @@ class RedmineClient:
         return self._to_json('/projects/{id}.json'.format(id=project_id))
     
     def get_issue(self, issue_id) -> dict:
-        return self._to_json('/issues/{id}.json'.format(id=issue_id))
+        return self._to_json('/issues/{id}.json?include=journals'.format(id=issue_id))
 
     def get_issues(self, *, filter_args=None, page=1) -> dict:
         return self._to_json('/issues.json', filter_args, page)

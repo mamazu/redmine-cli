@@ -33,6 +33,13 @@ elif args.subject == 'issues':
             description = item['description'].strip().replace("\n", "\\n").replace('\r', '')
             print(item['id'], "|", item['subject'], '|', item['status']['name'], '|', description)
 elif args.subject == 'users':
+    if args.me:
+        item = rm.get_current_user()
+        formatter.format_user_details(item['user'])
+    elif args.id is not None:
+        item = rm.get_user(args.id)
+        formatter.format_user_details(item['user'])
+    else:
         result = rm.get_users()
 
 print_result(result)

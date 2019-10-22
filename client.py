@@ -39,7 +39,10 @@ class RedmineClient:
         return self._to_json('/issues.json', filter_args, page)
 
     def get_user(self, user_id) -> dict:
-        return self._to_json('/users/{user_id}.json'.format(user_id=user_id))
+        return self._to_json('/users/{user_id}.json?include=memberships'.format(user_id=user_id))
+    
+    def get_current_user(self) -> dict:
+        return self._to_json('/users/current.json?include=memberships')
 
     def get_users(self) -> dict:
         return self._to_json('/users.json')

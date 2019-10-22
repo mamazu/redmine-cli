@@ -35,3 +35,22 @@ class Formatter:
             else:
                 print('\033[1m==={name}===\033[0m'.format(name=issue_comment['user']['name']))
                 print(issue_comment['notes'])
+
+    def format_user_details(self, user):
+        print('User: {name} ({id})'.format(name=user['login'], id=user['id']))
+        print('Name: {firstName} {lastName}'.format(firstName=user['firstname'], lastName=user['lastname']))
+        print('Last login: {lastLogin}'.format(lastLogin=user['last_login_on']))
+        print()
+        
+        print('\033[1m=== Memberships ===\033[0m') 
+        for membership in user['memberships']:
+            roles = []
+            for role in membership['roles']:
+                if 'inherited' in role:
+                   roles.append('\033[92m{roleName}\033[0m'.format(roleName=role['name']))
+                else:
+                    roles.append(role['name'])
+
+            print('Project: {name}'.format(name=membership['project']['name']))
+            print('Roles: {roles}'.format(roles=' | '.join(roles)))
+            print()

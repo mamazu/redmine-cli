@@ -1,4 +1,4 @@
-from console import parse_args, print_result, parse_filters
+from console import parse_args, parse_filters
 from credentials import get_credentials
 from client import iterate_response
 from client import RedmineClient
@@ -14,16 +14,22 @@ args = parse_filters(args)
 def curry_with_filters(f, filter_args):
     return lambda page=1: f(filter_args=filter_args, page=page)
 
-formatter = Formatter()
+formatter = Formatter(args.format)
 
-result = None
 if args.subject == 'projects':
     if args.id is not None:
         item = rm.get_project_details(args.id)
         formatter.format_project_details(item['project'])
     else:
         for p in iterate_response(curry_with_filters(rm.get_projects, args.filters), 'projects'):
-            print(p['id'], "|", p['name'], "|", p['description'].strip().replace("\n", "\\n").replace('\r', ''))
+            summary = {
+                "type": "projects",
+                "identifier": p['identifier'],
+                "id": p['id'],
+                "name": p['name'],
+                "description": p['description'].strip().replace("\n", "\\n").replace('\r', '')
+            }
+            formatter.print_summary(rm, summary)
 elif args.subject == 'issues':
     if args.id is not None:
         item = rm.get_issue(args.id)
@@ -31,7 +37,15 @@ elif args.subject == 'issues':
     else:
         for item in iterate_response(curry_with_filters(rm.get_issues, args.filters), 'issues'):
             description = item['description'].strip().replace("\n", "\\n").replace('\r', '')
-            print(item['id'], "|", item['subject'], '|', item['status']['name'], '|', description)
+            summary = {
+                "type": "issues",
+                "id": item['id'],
+                "identifier": item['id'],
+                "subject": item['subject'],
+                "status": item['status']['name'],
+                "description": description
+            }
+            formatter.print_summary(rm, summary)
 elif args.subject == 'users':
     if args.me:
         item = rm.get_current_user()
@@ -40,6 +54,5 @@ elif args.subject == 'users':
         item = rm.get_user(args.id)
         formatter.format_user_details(item['user'])
     else:
-        result = rm.get_users()
+        print(rm.get_users())
 
-print_result(result)

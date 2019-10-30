@@ -14,39 +14,43 @@ class RedmineClient:
         self.base_url = base_url
         self.limit = 100
 
+    def _get_url(self, resource_type, id=None, format_='.json') -> str:
+        url = ''
+        if id != None:
+            url = '/{id}'.format(id=id)
+        return self.base_url + '/' + resource_type + url + format_
+
     def _to_json(self, url, filter_args=None, page=1) -> dict:
         if type(filter_args) is not dict:
             filter_args = {}
         filter_args['page'] = page
         filter_args['limit'] = self.limit
 
-        url = self.base_url + url
         r = get(url=url, headers={'Authorization': self.authorization}, params=filter_args)
         if r.status_code >= 400:
             raise BaseException(r)
         return r.json()
 
     def get_projects(self, *, filter_args=None, page=1) -> dict:
-        return self._to_json('/projects.json', filter_args, page)
+        return self._to_json(self._get_url('projects'), filter_args, page)
 
     def get_project_details(self, project_id) -> dict:
-        return self._to_json('/projects/{id}.json'.format(id=project_id))
+        return self._to_json(self._get_url('projects', project_id))
     
     def get_issue(self, issue_id) -> dict:
-        return self._to_json('/issues/{id}.json?include=journals'.format(id=issue_id))
+        return self._to_json(self._get_url('issues',issue_id), {'include': 'journals'})
 
     def get_issues(self, *, filter_args=None, page=1) -> dict:
-        return self._to_json('/issues.json', filter_args, page)
+        return self._to_json(self._get_url('issues'), filter_args, page)
 
     def get_user(self, user_id) -> dict:
-        return self._to_json('/users/{user_id}.json?include=memberships'.format(user_id=user_id))
+        return self._to_json(self._get_url('users', user_id), {"include": "memberships"})
     
     def get_current_user(self) -> dict:
-        return self._to_json('/users/current.json?include=memberships')
+        return self._to_json(self._get_url('users', 'current'), {"include":'memberships'})
 
     def get_users(self) -> dict:
-        return self._to_json('/users.json')
-
+        return self._to_json(self._get_url('users'))
 
 def iterate_response(endpoint, data_path):
     json = endpoint()

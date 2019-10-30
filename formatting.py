@@ -1,4 +1,16 @@
+from client import RedmineClient
+
 class Formatter:
+    def __init__(self, format):
+        self.format = format
+
+    def print_summary(self, client, details):
+        hidden_properties = ['identifier', 'type']
+        if self.format == 'link':
+            print(RedmineClient._get_url(client, details['type'], details['identifier'], ''))
+        else:
+            print('|'.join([str(v) for k, v in details.items() if k not in hidden_properties]))
+
     def format_project_details(self, project):
         print('Name: {name} ({id})'.format(name=project['name'], id=project['identifier']))
         print('Parent: {name} ({id})'.format(name=project['parent']['name'], id=project['parent']['id']))
@@ -18,7 +30,8 @@ class Formatter:
         print('Priority: {name}'.format(name=issue['priority']['name']))
         print('Author: {name}'.format(name=issue['author']['name']))
         print('Assignee: {name}'.format(name=issue['assigned_to']['name']))
-        print('Estimated hours: {name}'.format(name=issue['estimated_hours']))
+        if 'estimated_hours' in issue:
+            print('Estimated hours: {name}'.format(name=issue['estimated_hours']))
         print('Spent hours: {name}'.format(name=issue['spent_hours']))
         print()
         print('Comments:')

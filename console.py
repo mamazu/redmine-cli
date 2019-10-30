@@ -5,8 +5,8 @@ def parse_args():
     parser.add_argument('subject', choices=['issues', 'projects', 'users'],
                         help='About what type of subject do you want to get information'
                         )
-    parser.add_argument('--id', default=None, required=False)
-    parser.add_argument('--format', default='|', required=False)
+    parser.add_argument('--id', default=None, required=False, help='Id of the issue / project for detailed info', type=int)
+    parser.add_argument('--format', default='|', choices=['|', 'link'], required=False)
     parser.add_argument('--me', default=False, action='store_true', required=False,
                         help='Ones visible or assigned to me')
 
@@ -24,12 +24,3 @@ def parse_filters(arguments):
     arguments.filters = filter_params
     return arguments
 
-
-def print_result(result) -> None:
-    from collections.abc import Iterable
-
-    if isinstance(result, Iterable):
-        for item in result:
-            print(item)
-    elif result is not None:
-        print(result)

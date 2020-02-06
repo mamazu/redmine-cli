@@ -10,3 +10,8 @@ Commands:
 |-----|-----|
 | redmine.py projects | Returns a list of all projects |
 | redmine.py issues | Returns a list of all issues |
+| redmine.py time | Get time data into redmine|
+
+### Entering data into the system
+Enter time entries:
+* `python3 redmine.py time --id <issue_id> --time <time>`

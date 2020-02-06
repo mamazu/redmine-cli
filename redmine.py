@@ -1,8 +1,8 @@
 from console import parse_args, parse_filters
 from credentials import get_credentials
-from client import iterate_response
+from client import iterate_response, BadRequest
 from client import RedmineClient
-from formatting import Formatter
+from formatter import PipeFormatter, LinkFormatter
 
 [url, username, password] = get_credentials()
 rm = RedmineClient(username, password, url)
@@ -14,7 +14,11 @@ args = parse_filters(args)
 def curry_with_filters(f, filter_args):
     return lambda page=1: f(filter_args=filter_args, page=page)
 
-formatter = Formatter(args.format)
+
+if args.format == 'link':
+    formatter = LinkFormatter(rm)
+else:
+    formatter = PipeFormatter()
 
 if args.subject == 'projects':
     if args.id is not None:
@@ -29,7 +33,7 @@ if args.subject == 'projects':
                 "name": p['name'],
                 "description": p['description'].strip().replace("\n", "\\n").replace('\r', '')
             }
-            formatter.print_summary(rm, summary)
+            formatter.print_summary(summary)
 elif args.subject == 'issues':
     if args.id is not None:
         item = rm.get_issue(args.id)
@@ -45,7 +49,7 @@ elif args.subject == 'issues':
                 "status": item['status']['name'],
                 "description": description
             }
-            formatter.print_summary(rm, summary)
+            formatter.print_summary(summary)
 elif args.subject == 'users':
     if args.me:
         item = rm.get_current_user()
@@ -55,4 +59,22 @@ elif args.subject == 'users':
         formatter.format_user_details(item['user'])
     else:
         print(rm.get_users())
-
+elif args.subject == 'time':
+    if args.id:
+        if args.time:
+            time = args.time
+            try:
+                rm.enter_issue_time(args.id, time)
+            except BadRequest as b:
+                print(b)
+            time_entries = []
+        else:
+            time_entries = rm.get_time_entries(filters={'issue_id': args.id})['time_entries']
+    else:
+        time_entries = iterate_response(
+            lambda page=1: rm.get_time_entries(args.me, page=page),
+            'time_entries'
+        )
+    for entry in time_entries:
+        print(entry)
+        formatter.format_time_summary(entry)

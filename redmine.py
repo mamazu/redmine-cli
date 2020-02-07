@@ -61,10 +61,12 @@ elif args.subject == 'users':
         print(rm.get_users())
 elif args.subject == 'time':
     if args.id:
+        method = rm.enter_issue_time
+        if args.id[0] == 'p':
+            method = rm.enter_project_time
         if args.time:
-            time = args.time
             try:
-                rm.enter_issue_time(args.id, time)
+                method(args.id, args.time)
             except BadRequest as b:
                 print(b)
             time_entries = []

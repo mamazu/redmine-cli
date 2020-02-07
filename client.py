@@ -91,8 +91,7 @@ class RedmineClient:
         return {'time_entry': params}
 
     def _post_entry_time(self, params):
-        print(params)
-        url = self.base_url + '/time_entries.json?project_id=170'
+        url = self.base_url + '/time_entries.json'
         json_data = json.dumps(params)
         r = post(url, headers={'Authorization': self.authorization, 'content-type': 'application/json'}, data=json_data)
         print(r.text)

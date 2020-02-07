@@ -1,5 +1,6 @@
 import os
 import sys
+import getpass
 
 CREDENTIAL_FILE = '.env'
 
@@ -16,7 +17,7 @@ def get_credentials():
     else:
         url = get_input('URL: ')
         username = get_input('Username: ')
-        password = get_input('Password: ')
+        password = getpass.getpass('Password: ')
         f = open(CREDENTIAL_FILE, 'w')
         f.write(url + "\n")
         f.write(username + "\n")

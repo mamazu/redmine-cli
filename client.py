@@ -105,6 +105,8 @@ class RedmineClient:
         :param float entry_date:
         :return:
         """
+        project_id = project_id[1:]
+        print(project_id)
         params = self._get_time_entry_date('project_id', project_id, time, entry_date)
         self._post_entry_time(params)
 

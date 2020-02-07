@@ -1,5 +1,6 @@
 from requests import get, post
 from base64 import b64encode
+import json
 
 
 class BadRequest(BaseException):
@@ -81,7 +82,7 @@ class RedmineClient:
         params = {
             key: id,
             'hours': time,
-            'activity': {"id": activity_id},
+            'activity_id': activity_id,
             'comments': comment if comment != '' else activity,
         }
 
@@ -91,9 +92,10 @@ class RedmineClient:
 
     def _post_entry_time(self, params):
         print(params)
-        url = self.base_url + '/time_entries.json'
-        print(url)
-        r = post(url, headers={'Authorization': self.authorization}, params=params)
+        url = self.base_url + '/time_entries.json?project_id=170'
+        json_data = json.dumps(params)
+        r = post(url, headers={'Authorization': self.authorization, 'content-type': 'application/json'}, data=json_data)
+        print(r.text)
         if r.status_code >= 400:
             raise BadRequest(r)
 

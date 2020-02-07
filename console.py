@@ -10,6 +10,7 @@ def parse_args():
     parser.add_argument('--me', default=False, action='store_true', required=False,
                         help='Ones visible or assigned to me')
     parser.add_argument('--time', default=None, required=False, help='Enters a time into the given issue', type=float)
+    parser.add_argument('--comment', default='', required=False, help='Comment for a time entry')
 
     return parser.parse_args()
 

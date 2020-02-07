@@ -98,7 +98,7 @@ class RedmineClient:
         if r.status_code >= 400:
             raise BadRequest(r)
 
-    def enter_project_time(self, project_id, time, entry_date=None):
+    def enter_project_time(self, project_id, time, entry_date=None, comment=""):
         """
         :param int project_id:
         :param float time:
@@ -106,12 +106,11 @@ class RedmineClient:
         :return:
         """
         project_id = project_id[1:]
-        print(project_id)
-        params = self._get_time_entry_date('project_id', project_id, time, entry_date)
+        params = self._get_time_entry_date('project_id', project_id, time, entry_date, comment=comment)
         self._post_entry_time(params)
 
-    def enter_issue_time(self, issue_id, time, entry_date=None):
-        params = self._get_time_entry_date('issue_id', issue_id, time, entry_date)
+    def enter_issue_time(self, issue_id, time, entry_date=None, comment=""):
+        params = self._get_time_entry_date('issue_id', issue_id, time, entry_date, comment=comment)
         self._post_entry_time(params)
 
 

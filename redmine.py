@@ -66,7 +66,7 @@ elif args.subject == 'time':
             method = rm.enter_project_time
         if args.time:
             try:
-                method(args.id, args.time)
+                method(args.id, args.time, comment=args.comment)
             except BadRequest as b:
                 print(b)
             time_entries = []

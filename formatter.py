@@ -1,6 +1,3 @@
-from client import RedmineClient
-
-
 class PipeFormatter:
     @staticmethod
     def _print_headline(content):

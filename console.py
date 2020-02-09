@@ -21,6 +21,9 @@ def parse_filters(arguments):
         filter_params = {'public': 'false'}
     elif arguments.subject == 'issues' and arguments.me:
         filter_params = {'assigned_to_id': 'me'}
+    elif arguments.subject == 'time' and arguments.me:
+        filter_params = {"user_id": "me"}
 
     arguments.filters = filter_params
+    print(arguments.filters)
     return arguments

@@ -25,5 +25,4 @@ def parse_filters(arguments):
         filter_params = {"user_id": "me"}
 
     arguments.filters = filter_params
-    print(arguments.filters)
     return arguments

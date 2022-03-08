@@ -20,7 +20,7 @@ class PipeFormatter:
         if issue['description'] == '':
             print('-- No description --')
         else:
-            print(issue['description'])
+            print('Description:\n' + issue['description'])
         print()
         print()
         print('Project: {name} ({id})'.format(name=issue['project']['name'], id=issue['project']['id']))
@@ -31,10 +31,10 @@ class PipeFormatter:
         print('Assignee: {name}'.format(name=issue['assigned_to']['name']))
         if 'estimated_hours' in issue:
             print('Estimated hours: {name}'.format(name=issue['estimated_hours']))
-        print('Spent hours: {name}'.format(name=issue['spent_hours']))
+        print('Spent hours: {name}'.format(name=issue.get('spent_hours', 0)))
         print()
         print('Comments:')
-        for issue_comment in issue['journals']:
+        for issue_comment in issue.get('journals', []):
             if issue_comment['notes'] == '':
                 PipeFormatter._format_details(issue_comment['details'])
 

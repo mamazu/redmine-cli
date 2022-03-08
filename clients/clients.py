@@ -48,6 +48,25 @@ class IssueClient(RedmineClient):
     def get_issues(self, *, filter_args=None, page=1) -> dict:
         return self._to_json(self._get_url('issues'), filter_args, page)
 
+    def create_issue(self, project_id: int, title: str, description: str) -> dict:
+        params = {
+            'issue': {
+                'project_id': project_id,
+                'subject': title,
+                'description': description
+             }
+        }
+        url = self._get_url('issues')
+        json_data = json.dumps(params)
+
+        headers = self._get_authorization()
+        headers['content-type'] = 'application/json'
+
+        r = post(url, headers=headers, data=json_data)
+        if r.status_code >= 400:
+            raise BadRequest(r)
+        return r.json()
+
 
 class UserClient(RedmineClient):
     def get_user(self, user_id) -> dict:

@@ -108,6 +108,9 @@ class LinkFormatter:
     def format_user_details(self, user):
         print(self.client._get_url('users', user['id'], ''))
 
+    def format_issue_details(self, entry):
+        print(self.client._get_url('issues', entry['id'], ''))
+
     def format_time_summary(self, entry):
         print(self.client._get_url('time_entries', entry['id']))
 

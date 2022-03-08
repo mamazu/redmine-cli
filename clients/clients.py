@@ -8,7 +8,7 @@ class RedmineClient:
     def __init__(self, username, password, base_url):
         pass_string = username + ':' + password
         self.authorization = 'Basic ' + b64encode(pass_string.encode('utf-8')).decode('utf-8')
-        self.base_url = base_url
+        self.base_url = base_url.rstrip('/')
         self.limit = 100
 
     def _get_url(self, resource_type, resource_id=None, format_='.json') -> str:
@@ -28,6 +28,7 @@ class RedmineClient:
 
         r = get(url=url, headers=self._get_authorization(), params=filter_args)
         if r.status_code >= 400:
+            print(url)
             raise BadRequest(r)
         return r.json()
 

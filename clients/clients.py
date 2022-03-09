@@ -49,7 +49,6 @@ class IssueClient(RedmineClient):
         entries = []
         page = 1
         new_entries = self._to_json(self._get_url('issues'), filter_args, page)['issues']
-        entries += new_entries
         while len(new_entries) != 0:
             entries += new_entries
             page += 1

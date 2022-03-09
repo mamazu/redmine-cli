@@ -115,7 +115,7 @@ def handle_issues(args) -> None:
 def handle_agile(args):
     rm = IssueClient(username, password, url)
     by_assignee = {}
-    for issue in rm.get_issues(filter_args={'project_id': args.project_id})['issues']:
+    for issue in rm.get_issues(filter_args={'project_id': args.project_id}):
         current_assignee = issue['assigned_to']['name']
         current_status = issue['status']['name']
         if current_assignee not in by_assignee:
@@ -130,7 +130,8 @@ def handle_agile(args):
         'In Progress': colorama.Back.BLACK,
         'Hold': colorama.Back.RED,
         'Feedback': colorama.Back.YELLOW+colorama.Fore.BLACK,
-        'Review': colorama.Back.MAGENTA
+        'Review': colorama.Back.MAGENTA,
+        'QA': colorama.Back.RESET,
     }
     width = 200
     table_formatter = AgileFormatter(width, color_palette)

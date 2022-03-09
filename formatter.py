@@ -114,3 +114,37 @@ class LinkFormatter:
     def format_time_summary(self, entry):
         print(self.client._get_url('time_entries', entry['id']))
 
+class AgileFormatter:
+    def __init__(self, table_width: int, color_palette):
+        self.table_width = table_width
+        self.color_palette = color_palette
+
+    def format(self, by_assignee) -> None:
+        for name, status_list in by_assignee.items():
+            print('\033[1m{content}\033[0m'.format(content=(f' {name} ').center(self.table_width, '=')))
+            keys = status_list.keys()
+            width_per_column = self.table_width // len(keys)
+            print('|', end='')
+            for current_status in keys:
+                color = self.color_palette[current_status]
+                print(color + current_status.center(width_per_column)+'|', end='')
+            print('\033[0m')
+
+            format_string_for_column = '{0:<' + str(width_per_column)+ '}|'
+            i = 0
+            hasIssues = True
+            while hasIssues:
+                line_content = '|'
+                hasIssues = False
+                for key in keys:
+                    if i < len(status_list[key]):
+                        hasIssues = True
+                        issue = status_list[key][i]
+                        title = (str(issue['id']) + ': ' + issue['subject'])[:width_per_column]
+                    else:
+                        title = ''
+                    line_content += format_string_for_column.format(title)
+                i+=1
+                if hasIssues:
+                    print(line_content)
+            print()

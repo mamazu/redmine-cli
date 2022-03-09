@@ -4,7 +4,8 @@ import sys
 from credentials import get_credentials
 from clients.utils import iterate_response, BadRequest, curry_with_filters
 from clients.clients import ProjectClient, IssueClient, UserClient, TimeEntryClient
-from formatter import PipeFormatter, LinkFormatter
+from formatter import AgileFormatter, PipeFormatter, LinkFormatter, AgileFormatter
+import colorama
 
 formatter = PipeFormatter()
 [url, username, password] = get_credentials()
@@ -111,6 +112,30 @@ def handle_issues(args) -> None:
             }
             formatter.print_summary(summary)
 
+def handle_agile(args):
+    rm = IssueClient(username, password, url)
+    by_assignee = {}
+    for issue in rm.get_issues(filter_args={'project_id': args.project_id})['issues']:
+        current_assignee = issue['assigned_to']['name']
+        current_status = issue['status']['name']
+        if current_assignee not in by_assignee:
+            by_assignee[current_assignee] = {}
+        if current_status not in by_assignee[current_assignee]:
+            by_assignee[current_assignee][current_status] = []
+        by_assignee[current_assignee][current_status].append(issue)
+
+    color_palette = {
+        'New': colorama.Back.BLUE,
+        'Resolved': colorama.Back.GREEN,
+        'In Progress': colorama.Back.BLACK,
+        'Hold': colorama.Back.RED,
+        'Feedback': colorama.Back.YELLOW+colorama.Fore.BLACK,
+        'Review': colorama.Back.MAGENTA
+    }
+    width = 200
+    table_formatter = AgileFormatter(width, color_palette)
+    table_formatter.format(by_assignee)
+
 
 def parse_args():
     from argparse import ArgumentParser
@@ -141,6 +166,10 @@ def parse_args():
     project_parser.add_argument('--format', default='|', choices=['|', 'link'], required=False)
     project_parser.add_argument('--me', default=False, action='store_true', required=False, help='Ones visible or assigned to me')
     project_parser.set_defaults(subject='projects', func=handle_projects)
+
+    agile_parser = subparsers.add_parser('agile', help="CLI version of an agile board")
+    agile_parser.add_argument('project_id', help="Id of the project that you want to see.")
+    agile_parser.set_defaults(func=handle_agile)
 
     return parser.parse_args()
 

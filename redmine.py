@@ -142,6 +142,13 @@ def handle_agile(args) -> None:
     table_formatter = AgileFormatter(width, color_palette)
     table_formatter.format(by_assignee)
 
+def handle_branch(args):
+    rm = IssueClient(username, password, url)
+    name = rm.get_issue(args.issue_id)['issue']['subject']
+    branch_name = name.replace(' ', '_')
+
+    print(branch_name)
+    pass
 
 def parse_args():
     from argparse import ArgumentParser
@@ -176,6 +183,11 @@ def parse_args():
     agile_parser = subparsers.add_parser('agile', help="CLI version of an agile board")
     agile_parser.add_argument('project_id', help="Id of the project that you want to see.")
     agile_parser.set_defaults(func=handle_agile)
+
+    branch_parser = subparsers.add_parser('branch', help="Create a branch in the current directory")
+    branch_parser.add_argument('issue_id', help="Id of the issue to create a branch with")
+    branch_parser.add_argument('--dir', default=None, required=False, help="Directory where the repository sits")
+    branch_parser.set_defaults(func=handle_branch)
 
     return parser, parser.parse_args()
 

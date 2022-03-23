@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import os
 
 from credentials import get_credentials
 from clients.utils import iterate_response, BadRequest, curry_with_filters
@@ -66,6 +67,12 @@ def handle_users(args):
         formatter.format_user_details(item['user'])
     else:
         print(rm.get_users())
+
+naming_conventions = {
+    'title': lambda issue: issue['subject'],
+    'feature': lambda issue: f"{issue['tracker']['name'].lower()}-{issue['id']}",
+    'b24': lambda issue: f"{issue['project']['name'].split(' ')[-1].upper()}-{issue['id']}-{issue['subject']}"
+}
 
 def handle_projects(args):
     rm = ProjectClient(username, password, url)
@@ -144,11 +151,16 @@ def handle_agile(args) -> None:
 
 def handle_branch(args):
     rm = IssueClient(username, password, url)
-    name = rm.get_issue(args.issue_id)['issue']['subject']
-    branch_name = name.replace(' ', '_')
+    issue = rm.get_issue(args.issue_id)['issue']
 
-    print(branch_name)
-    pass
+    branch_name = naming_conventions[args.naming_convention](issue).replace(' ', '_')
+
+    if args.dir is not None:
+        print("Not implemented yet")
+        exit(1)
+
+    os.system("git checkout -b "+branch_name)
+    print('Created branch: ' + branch_name)
 
 def parse_args():
     from argparse import ArgumentParser
@@ -187,6 +199,7 @@ def parse_args():
     branch_parser = subparsers.add_parser('branch', help="Create a branch in the current directory")
     branch_parser.add_argument('issue_id', help="Id of the issue to create a branch with")
     branch_parser.add_argument('--dir', default=None, required=False, help="Directory where the repository sits")
+    branch_parser.add_argument('--naming_convention', default='title', required=False, help="Directory where the repository sits")
     branch_parser.set_defaults(func=handle_branch)
 
     return parser, parser.parse_args()

@@ -11,14 +11,14 @@ import colorama
 formatter = PipeFormatter()
 [url, username, password] = get_credentials()
 
-def open_editor() -> str:
+def open_editor(default_text: str) -> str:
     import tempfile, os
     from subprocess import call
 
     EDITOR = os.environ.get('EDITOR','vim') #that easy!
 
     with tempfile.NamedTemporaryFile(suffix=".tmp") as tf:
-      tf.write(b'Description')
+      tf.write(default_text)
       tf.flush()
       call([EDITOR, tf.name])
 
@@ -68,12 +68,6 @@ def handle_users(args):
     else:
         print(rm.get_users())
 
-naming_conventions = {
-    'title': lambda issue: issue['subject'],
-    'feature': lambda issue: f"{issue['tracker']['name'].lower()}-{issue['id']}",
-    'b24': lambda issue: f"{issue['project']['name'].split(' ')[-1].upper()}-{issue['id']}-{issue['subject']}"
-}
-
 def handle_projects(args):
     rm = ProjectClient(username, password, url)
     if args.id is not None:
@@ -97,7 +91,7 @@ def handle_issues(args) -> None:
         formatter = LinkFormatter(rm)
     if args.id == 'new':
         title = input('Title: ')
-        description = open_editor()
+        description = open_editor(b'Description')
         print('Description: ' + description)
         project_id = int(input('Project ID: '))
         issue = rm.create_issue(project_id, title, description)
@@ -149,6 +143,11 @@ def handle_agile(args) -> None:
     table_formatter = AgileFormatter(width, color_palette)
     table_formatter.format(by_assignee)
 
+naming_conventions = {
+    'title': lambda issue: issue['subject'],
+    'feature': lambda issue: f"{issue['tracker']['name'].lower()}-{issue['id']}",
+    'b24': lambda issue: f"{issue['project']['name'].split(' ')[-1].upper()}-{issue['id']}-{issue['subject']}"
+}
 def handle_branch(args):
     rm = IssueClient(username, password, url)
     issue = rm.get_issue(args.issue_id)['issue']

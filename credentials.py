@@ -1,9 +1,11 @@
 import os
 import getpass
+import pathlib
 
-CREDENTIAL_FILE = '.env'
+CREDENTIAL_FILE = os.path.join(str(pathlib.Path().absolute()), '.env')
 
 def get_credentials():
+    print(CREDENTIAL_FILE)
     if os.path.exists(CREDENTIAL_FILE):
         [url, username, password] = [a.strip() for a in open(CREDENTIAL_FILE).readlines()]
     else:

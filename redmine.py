@@ -11,7 +11,7 @@ formatter = PipeFormatter()
 [url, username, password] = get_credentials()
 
 def open_editor() -> str:
-    import sys, tempfile, os
+    import tempfile, os
     from subprocess import call
 
     EDITOR = os.environ.get('EDITOR','vim') #that easy!
@@ -112,10 +112,15 @@ def handle_issues(args) -> None:
             }
             formatter.print_summary(summary)
 
-def handle_agile(args):
+def handle_agile(args) -> None:
     rm = IssueClient(username, password, url)
     by_assignee = {}
-    for issue in rm.get_issues(filter_args={'project_id': args.project_id}):
+    issues = rm.get_issues(filter_args={'project_id': args.project_id})
+    if len(issues) == 0:
+        print('There are no issues in this project')
+        return
+
+    for issue in issues:
         current_assignee = issue['assigned_to']['name']
         current_status = issue['status']['name']
         if current_assignee not in by_assignee:
@@ -172,7 +177,7 @@ def parse_args():
     agile_parser.add_argument('project_id', help="Id of the project that you want to see.")
     agile_parser.set_defaults(func=handle_agile)
 
-    return parser.parse_args()
+    return parser, parser.parse_args()
 
 def parse_filters(arguments):
     filter_params = {}
@@ -185,6 +190,10 @@ def parse_filters(arguments):
     arguments.filters = filter_params
     return arguments
 
-args = parse_args()
+parser, args = parse_args()
 args = parse_filters(args)
+if 'func' not in args:
+    parser.print_help()
+    sys.exit(1)
+
 args.func(args)

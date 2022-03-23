@@ -45,7 +45,7 @@ class IssueClient(RedmineClient):
     def get_issue(self, issue_id) -> dict:
         return self._to_json(self._get_url('issues', issue_id), {'include': 'journals'})
 
-    def get_issues(self, *, filter_args=None) -> list:
+    def get_issues(self, *, page=1, filter_args=None) -> list:
         entries = []
         page = 1
         new_entries = self._to_json(self._get_url('issues'), filter_args, page)['issues']

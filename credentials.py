@@ -2,7 +2,7 @@ import os
 import getpass
 import pathlib
 
-CREDENTIAL_FILE = os.path.join(str(pathlib.Path().absolute()), '.env')
+CREDENTIAL_FILE = os.path.join(str(pathlib.Path(__file__).parent.absolute()), '.env')
 
 def get_credentials():
     print(CREDENTIAL_FILE)

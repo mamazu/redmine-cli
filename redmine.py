@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-import sys
 import os
+import sys
 
-from credentials import get_credentials
-from clients.utils import iterate_response, BadRequest, curry_with_filters
-from clients.clients import ProjectClient, IssueClient, UserClient, TimeEntryClient
-from formatter import AgileFormatter, PipeFormatter, LinkFormatter, AgileFormatter
 import colorama
+
+from clients.clients import IssueClient, ProjectClient, TimeEntryClient, UserClient
+from clients.utils import BadRequest, curry_with_filters, iterate_response
+from credentials import get_credentials
+from formatter import AgileFormatter, AgileFormatter, LinkFormatter, PipeFormatter
 
 formatter = PipeFormatter()
 [url, username, password] = get_credentials()

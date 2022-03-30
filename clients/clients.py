@@ -5,13 +5,18 @@ from clients.utils import BadRequest
 
 
 class RedmineClient:
+
     def __init__(self, username, password, base_url):
         pass_string = username + ':' + password
-        self.authorization = 'Basic ' + b64encode(pass_string.encode('utf-8')).decode('utf-8')
+        self.authorization = 'Basic ' + b64encode(
+            pass_string.encode('utf-8')).decode('utf-8')
         self.base_url = base_url.rstrip('/')
         self.limit = 100
 
-    def _get_url(self, resource_type, resource_id=None, format_='.json') -> str:
+    def _get_url(self,
+                 resource_type,
+                 resource_id=None,
+                 format_='.json') -> str:
         url = ''
         if resource_id is not None:
             url = '/{id}'.format(id=resource_id)
@@ -34,11 +39,13 @@ class RedmineClient:
 
 
 class ProjectClient(RedmineClient):
+
     def get_projects(self, *, filter_args=None, page=1) -> dict:
         return self._to_json(self._get_url('projects'), filter_args, page)
 
     def get_project_details(self, project_id) -> dict:
         return self._to_json(self._get_url('projects', project_id))
+
 
 class TrackerClient(RedmineClient):
     cached = True
@@ -54,24 +61,31 @@ class TrackerClient(RedmineClient):
         trackers = self._to_json(self._get_url('trackers'))['trackers']
 
         if TrackerClient.cached:
-            self.trackers = {tracker['id']: tracker['name'] for tracker in trackers}
+            self.trackers = {
+                tracker['id']: tracker['name']
+                for tracker in trackers
+            }
         return self.trackers
 
+
 class IssueClient(RedmineClient):
+
     def get_issue(self, issue_id) -> dict:
-        return self._to_json(self._get_url('issues', issue_id), {'include': 'journals'})
+        return self._to_json(self._get_url('issues', issue_id),
+                             {'include': 'journals'})
 
     def get_issues(self, *, page=1, filter_args=None) -> dict:
         return self._to_json(self._get_url('issues'), filter_args, page)
 
-    def create_issue(self, project_id: int, title: str, description: str, tracker_id: str) -> dict:
+    def create_issue(self, project_id: int, title: str, description: str,
+                     tracker_id: str) -> dict:
         params = {
             'issue': {
                 'project_id': project_id,
                 'subject': title,
                 'description': description,
                 'tracker_id': tracker_id
-             }
+            }
         }
         url = self._get_url('issues')
         json_data = json.dumps(params)
@@ -86,29 +100,41 @@ class IssueClient(RedmineClient):
 
 
 class UserClient(RedmineClient):
+
     def get_user(self, user_id) -> dict:
-        return self._to_json(self._get_url('users', user_id), {"include": "memberships"})
+        return self._to_json(self._get_url('users', user_id),
+                             {"include": "memberships"})
 
     def get_current_user(self) -> dict:
-        return self._to_json(self._get_url('users', 'current'), {"include": 'memberships'})
+        return self._to_json(self._get_url('users', 'current'),
+                             {"include": 'memberships'})
 
     def get_users(self) -> dict:
         return self._to_json(self._get_url('users'))
 
 
 class TimeEntryClient(RedmineClient):
+
     def get_time_entries(self, filter_args=None, page=1) -> dict:
         return self._to_json(self._get_url('time_entries'), filter_args, page)
 
     def get_time_entry_activities(self) -> dict:
         formatted_activities = {}
-        activities = self._to_json(self.base_url + '/enumerations/time_entry_activities.json')['time_entry_activities']
+        activities = self._to_json(self.base_url +
+                                   '/enumerations/time_entry_activities.json'
+                                   )['time_entry_activities']
         for activity in activities:
             formatted_activities[activity['name']] = activity['id']
 
         return formatted_activities
 
-    def _get_time_entry_date(self, key, id, time, entry_date, activity=None, comment=''):
+    def _get_time_entry_date(self,
+                             key,
+                             id,
+                             time,
+                             entry_date,
+                             activity=None,
+                             comment=''):
         activities = self.get_time_entry_activities()
         if activity in activities:
             activity_id = activities[activity]
@@ -138,11 +164,23 @@ class TimeEntryClient(RedmineClient):
         if r.status_code >= 400:
             raise BadRequest(r)
 
-    def enter_project_time(self, project_id, time, entry_date=None, comment=""):
+    def enter_project_time(self,
+                           project_id,
+                           time,
+                           entry_date=None,
+                           comment=""):
         project_id = project_id[1:]
-        params = self._get_time_entry_date('project_id', project_id, time, entry_date, comment=comment)
+        params = self._get_time_entry_date('project_id',
+                                           project_id,
+                                           time,
+                                           entry_date,
+                                           comment=comment)
         self._post_entry_time(params)
 
     def enter_issue_time(self, issue_id, time, entry_date=None, comment=""):
-        params = self._get_time_entry_date('issue_id', issue_id, time, entry_date, comment=comment)
+        params = self._get_time_entry_date('issue_id',
+                                           issue_id,
+                                           time,
+                                           entry_date,
+                                           comment=comment)
         self._post_entry_time(params)

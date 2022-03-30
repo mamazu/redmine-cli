@@ -4,6 +4,7 @@ from unittest.mock import patch, mock_open, call
 
 
 class MyTestCase(unittest.TestCase):
+
     @patch('os.path')
     @patch("builtins.open", mock_open(read_data='http://abc\ntest\npassword'))
     def test_reading_credentials_from_file(self, mock_os_path):
@@ -20,7 +21,8 @@ class MyTestCase(unittest.TestCase):
     @patch('os.path')
     @patch('builtins.input', return_value="abcs")
     @patch("builtins.open", create=True)
-    def test_reading_credentials_from_command_line(self, mock_file, mock_input, mock_os_path):
+    def test_reading_credentials_from_command_line(self, mock_file, mock_input,
+                                                   mock_os_path):
         # Setting up the mocks
         mock_os_path.exists.return_value = False
 
@@ -30,9 +32,12 @@ class MyTestCase(unittest.TestCase):
         # Asserting functions have been called
         mock_os_path.exists.assert_called_once_with('.env')
         mock_file.assert_called_once_with('.env', 'w')
-        mock_file().write.assert_has_calls([call('abcs\n'), call('abcs\n'), call('abcs')])
+        mock_file().write.assert_has_calls(
+            [call('abcs\n'), call('abcs\n'),
+             call('abcs')])
         self.assertEqual(mock_file().write.call_count, 3)
         mock_file().close.assert_called_once_with()
+
 
 if __name__ == '__main__':
     unittest.main()

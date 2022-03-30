@@ -7,7 +7,7 @@ class BadRequest(BaseException):
     def __str__(self):
         return '[{code}] {message}'.format(code=self.response.status_code, message=self.response.content)
 
-def iterate_response(endpoint, data_path):
+def iterate_response(endpoint, data_path, auto_confirm=False):
     try:
         json = endpoint()
         total = json['total_count']
@@ -19,7 +19,7 @@ def iterate_response(endpoint, data_path):
                 yield item
                 count += 1
             page += 1
-            if not confirm_contine():
+            if not auto_confirm and not confirm_contine():
                 return
             json = endpoint(page=page)
     except KeyboardInterrupt:

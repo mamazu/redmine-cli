@@ -116,13 +116,15 @@ def handle_issues(args) -> None:
 
 def handle_agile(args) -> None:
     rm = IssueClient(username, password, url)
-    by_assignee = {}
-    issues = rm.get_issues(filter_args={'project_id': args.project_id})
-    if len(issues) == 0:
-        print('There are no issues in this project')
-        return
+    issues = iterate_response(
+            curry_with_filters(rm.get_issues, {'project_id': args.project_id}),
+            'issues', auto_confirm=True
+            )
 
+    by_assignee = {}
+    has_output = False
     for issue in issues:
+        has_output = True
         current_assignee = issue['assigned_to']['name']
         current_status = issue['status']['name']
         if current_assignee not in by_assignee:
@@ -130,6 +132,10 @@ def handle_agile(args) -> None:
         if current_status not in by_assignee[current_assignee]:
             by_assignee[current_assignee][current_status] = []
         by_assignee[current_assignee][current_status].append(issue)
+
+    if not has_output:
+        print('There are no issues in this project')
+        return
 
     color_palette = {
         'New': colorama.Back.BLUE,

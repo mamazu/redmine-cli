@@ -8,7 +8,7 @@ from credentials import get_credentials
 from formatter import AgileFormatter, AgileFormatter, LinkFormatter, PipeFormatter
 from ui import select_project, select_from_list
 
-from typing import Optional
+from typing import Optional, Dict
 
 formatter = PipeFormatter()
 [url, username, password] = get_credentials()
@@ -80,8 +80,8 @@ def handle_projects(args):
         item = rm.get_project_details(args.id)
         formatter.format_project_details(item['project'])
     else:
-        for p in iterate_response(
-                curry_with_filters(rm.get_projects, args.filters), 'projects'):
+        for p in iterate_response(curry_with_filters(rm.get_projects, {}),
+                                  'projects'):
             summary = {
                 "type":
                 "projects",
@@ -92,21 +92,23 @@ def handle_projects(args):
                 "name":
                 p['name'],
                 "description":
-                p['description'].strip().replace("\n",
-                                                 "\\n").replace('\r', '')
+                p['description'].strip()\
+                        .replace("\n", "\\n").replace('\r', '')
             }
             formatter.print_summary(summary)
 
 
-def create_new_ticket(rm: IssueClient, project_id: Optional[str],
+def create_new_ticket(rm: IssueClient, project: Optional[str],
                       tracker_id: Optional[str]):
     title = input('Title: ')
 
     description = open_editor(b'Description')
     print('Description: ' + description)
 
-    if project_id is None:
+    if project is None:
         project_id = select_project(ProjectClient(username, password, url))
+    else:
+        project_id = int(project)
 
     if tracker_id is None:
         tracker_id = select_from_list(
@@ -169,8 +171,7 @@ def handle_agile(args) -> None:
         print('There are no issues in this project')
         return
 
-    width = 200
-    table_formatter = AgileFormatter(width)
+    table_formatter = AgileFormatter(int(args.width))
     table_formatter.format(by_assignee)
 
 
@@ -193,6 +194,7 @@ def handle_branch(args):
 
 def parse_args():
     from argparse import ArgumentParser
+    import config
 
     formatter = ['|', 'link']
 
@@ -267,12 +269,15 @@ def parse_args():
                                 default='|',
                                 choices=['|', 'link'],
                                 required=False)
-    project_parser.set_defaults(subject='projects', func=handle_projects)
+    project_parser.set_defaults(func=handle_projects)
 
     agile_parser = subparsers.add_parser('agile',
                                          help="CLI version of an agile board")
     agile_parser.add_argument('project_id',
                               help="Id of the project that you want to see.")
+    agile_parser.add_argument('--width',
+                              help="Width of the table in blocks",
+                              default=config.default_agile_width)
     agile_parser.set_defaults(func=handle_agile)
 
     branch_parser = subparsers.add_parser(
@@ -292,7 +297,7 @@ def parse_args():
     return parser, parser.parse_args()
 
 
-def parse_filters_for_issues(arguments):
+def parse_filters_for_issues(arguments) -> Dict[str, str]:
     filter_params = {}
     if arguments.me:
         filter_params['assigned_to_id'] = 'me'

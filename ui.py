@@ -1,36 +1,31 @@
 from clients.clients import ProjectClient
 from clients.utils import iterate_response
-from typing import Dict, Optional
+from typing import Dict
 import config
 
-
-def select_from_list(options: Dict[str, str]) -> Optional[str]:
+def select_from_list(options: Dict[str, str]) -> str:
     if len(options) == 0:
-        return None
+        return ''
 
     while True:
         for key, entry in options.items():
             print(f"{key}) {entry}")
 
-        try:
-            selected_key = input('Selected option: ')
-        except KeyboardInterrupt:
-            return None
-
+        selected_key = input('Selected option: ')
         for key, _ in options.items():
             if selected_key == key:
                 return key
         print('Could not find an option for the provided input. Try again!')
 
 
-def select_project(client: ProjectClient) -> Optional[str]:
+def select_project(client: ProjectClient) -> int:
     project_list = dict({
         str(project['id']):
         f"{project['name']} - {project['description'][:100]}"
         for project in iterate_response(
             client.get_projects, 'projects', auto_confirm=True)
     })
-    return select_from_list(project_list)
+    return int(select_from_list(project_list))
 
 
 def format_status(status: str) -> str:

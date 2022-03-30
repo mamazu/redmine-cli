@@ -7,7 +7,7 @@ class TestUi(unittest.TestCase):
 
     @mock.patch('builtins.input')
     def test_selecting_from_an_empty_list(self, input_mock):
-        self.assertEqual(select_from_list({}), None)
+        self.assertEqual(select_from_list({}), '')
         self.assertEqual(input_mock.call_count, 0)
 
     @mock.patch('builtins.print')

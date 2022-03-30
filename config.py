@@ -27,3 +27,5 @@ naming_conventions = {
     lambda issue:
     f"{issue['project']['name'].split(' ')[-1].upper()}-{issue['id']}-{issue['subject']}"
 }
+
+default_agile_width = 200

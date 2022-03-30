@@ -2,12 +2,14 @@
 import os
 import sys
 
-import colorama
-
-from clients.clients import IssueClient, ProjectClient, TimeEntryClient, UserClient
+from clients.clients import IssueClient, ProjectClient, TimeEntryClient, UserClient,  TrackerClient
 from clients.utils import BadRequest, curry_with_filters, iterate_response
 from credentials import get_credentials
 from formatter import AgileFormatter, AgileFormatter, LinkFormatter, PipeFormatter
+from ui import select_project, select_from_list
+import config
+
+from typing import Optional
 
 formatter = PipeFormatter()
 [url, username, password] = get_credentials()
@@ -85,31 +87,44 @@ def handle_projects(args):
             }
             formatter.print_summary(summary)
 
+def create_new_ticket(rm: IssueClient, project_id: Optional[str], tracker_id: Optional[str]):
+    title = input('Title: ')
+
+    description = open_editor(b'Description')
+    print('Description: ' + description)
+
+    if project_id is None:
+        project_id = select_project(ProjectClient(username, password, url))
+        exit(2)
+
+    if tracker_id is None:
+        tracker_id = select_from_list(TrackerClient(username, password, url).get_trackers().items())
+
+    issue = rm.create_issue(project_id, title, description, tracker_id)
+    print()
+    formatter.format_issue_details(issue['issue'])
+
 def handle_issues(args) -> None:
     rm = IssueClient(username, password, url)
     global formatter
     if args.format == 'link':
         formatter = LinkFormatter(rm)
     if args.id == 'new':
-        title = input('Title: ')
-        description = open_editor(b'Description')
-        print('Description: ' + description)
-        project_id = int(input('Project ID: '))
-        issue = rm.create_issue(project_id, title, description)
-        print()
-        formatter.format_issue_details(issue['issue'])
+        create_new_ticket(rm, args.project_id, args.tracker_id)
     elif args.id is not None:
         item = rm.get_issue(args.id)
         formatter.format_issue_details(item['issue'])
     else:
-        for item in iterate_response(curry_with_filters(rm.get_issues, args.filters), 'issues'):
+        filters = parse_filters_for_issues(args)
+        for item in iterate_response(curry_with_filters(rm.get_issues, filters), 'issues'):
             description = item['description'].strip().replace("\n", "\\n").replace('\r', '')
             summary = {
                 "type": "issues",
                 "id": item['id'],
+                "tracker": item['tracker']['name'],
                 "identifier": item['id'],
-                "subject": item['subject'],
                 "status": item['status']['name'],
+                "subject": item['subject'],
                 "description": description
             }
             formatter.print_summary(summary)
@@ -137,17 +152,8 @@ def handle_agile(args) -> None:
         print('There are no issues in this project')
         return
 
-    color_palette = {
-        'New': colorama.Back.BLUE,
-        'Resolved': colorama.Back.GREEN,
-        'In Progress': colorama.Back.BLACK,
-        'Hold': colorama.Back.RED,
-        'Feedback': colorama.Back.YELLOW+colorama.Fore.BLACK,
-        'Review': colorama.Back.MAGENTA,
-        'QA': colorama.Back.RESET,
-    }
     width = 200
-    table_formatter = AgileFormatter(width, color_palette)
+    table_formatter = AgileFormatter(width)
     table_formatter.format(by_assignee)
 
 naming_conventions = {
@@ -171,6 +177,8 @@ def handle_branch(args):
 def parse_args():
     from argparse import ArgumentParser
 
+    formatter = ['|', 'link']
+
     parser = ArgumentParser()
     subparsers = parser.add_subparsers()
 
@@ -182,20 +190,21 @@ def parse_args():
 
     user_parser = subparsers.add_parser('user', help="User management (currently not fully implemented)")
     user_parser.add_argument('id', nargs='?', default=None, help='Id of the user')
-    user_parser.add_argument('--format', default='|', choices=['|', 'link'], required=False)
+    user_parser.add_argument('--format', default='|', choices=formatter, required=False)
     user_parser.add_argument('--me', default=False, action='store_true', required=False, help='Ones visible or assigned to me')
     user_parser.set_defaults(func=handle_users)
 
     issues_parser = subparsers.add_parser('issues', help="Listing and managing issues")
     issues_parser.add_argument('id', nargs="?", default=None, help='Id of the issue')
-    issues_parser.add_argument('--format', default='|', choices=['|', 'link'], required=False)
+    issues_parser.add_argument('--format', default='|', choices=formatter, required=False)
     issues_parser.add_argument('--me', default=False, action='store_true', required=False, help='Ones visible or assigned to me')
-    issues_parser.set_defaults(subject='issues', func=handle_issues)
+    issues_parser.add_argument('--project_id', default=None, required=False, help="Project the issue(s) should belong to")
+    issues_parser.add_argument('--tracker_id', default=None, required=False, help="Tracker the issue(s) should have")
+    issues_parser.set_defaults(func=handle_issues)
 
     project_parser = subparsers.add_parser('projects', help="Listing projects")
     project_parser.add_argument('id', nargs='?', default=None, help='Id of the project')
     project_parser.add_argument('--format', default='|', choices=['|', 'link'], required=False)
-    project_parser.add_argument('--me', default=False, action='store_true', required=False, help='Ones visible or assigned to me')
     project_parser.set_defaults(subject='projects', func=handle_projects)
 
     agile_parser = subparsers.add_parser('agile', help="CLI version of an agile board")
@@ -210,19 +219,17 @@ def parse_args():
 
     return parser, parser.parse_args()
 
-def parse_filters(arguments):
+def parse_filters_for_issues(arguments):
     filter_params = {}
-    if 'subject' in arguments:
-        if arguments.subject == 'project' and arguments.me:
-            filter_params = {'public': 'false'}
-        elif arguments.subject == 'issues' and arguments.me:
-            filter_params = {'assigned_to_id': 'me'}
-
-    arguments.filters = filter_params
-    return arguments
+    if arguments.me:
+        filter_params['assigned_to_id'] = 'me'
+    if arguments.tracker_id is not None:
+        filter_params['tracker_id'] = arguments.tracker_id
+    if arguments.project_id is not None:
+        filter_params['project_id'] = arguments.project_id
+    return filter_params
 
 parser, args = parse_args()
-args = parse_filters(args)
 if 'func' not in args:
     parser.print_help()
     sys.exit(1)

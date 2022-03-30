@@ -40,6 +40,22 @@ class ProjectClient(RedmineClient):
     def get_project_details(self, project_id) -> dict:
         return self._to_json(self._get_url('projects', project_id))
 
+class TrackerClient(RedmineClient):
+    cached = True
+
+    def __init__(self, username, password, base_url):
+        super().__init__(username, password, base_url)
+        self.trackers = None
+
+    def get_trackers(self):
+        if self.trackers is not None:
+            return self.trackers
+
+        trackers = self._to_json(self._get_url('trackers'))['trackers']
+
+        if TrackerClient.cached:
+            self.trackers = {tracker['id']: tracker['name'] for tracker in trackers}
+        return self.trackers
 
 class IssueClient(RedmineClient):
     def get_issue(self, issue_id) -> dict:
@@ -48,12 +64,13 @@ class IssueClient(RedmineClient):
     def get_issues(self, *, page=1, filter_args=None) -> dict:
         return self._to_json(self._get_url('issues'), filter_args, page)
 
-    def create_issue(self, project_id: int, title: str, description: str) -> dict:
+    def create_issue(self, project_id: int, title: str, description: str, tracker_id: str) -> dict:
         params = {
             'issue': {
                 'project_id': project_id,
                 'subject': title,
-                'description': description
+                'description': description,
+                'tracker_id': tracker_id
              }
         }
         url = self._get_url('issues')

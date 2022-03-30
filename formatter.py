@@ -1,12 +1,27 @@
+from ui import format_status, format_tracker
+
 class PipeFormatter:
     @staticmethod
     def _print_headline(content):
         print('\033[1m=== {content} ===\033[0m'.format(content=content))
 
     @staticmethod
-    def print_summary(details):
+    def print_summary(details: dict) -> None:
+        import colorama
+
         hidden_properties = ['identifier', 'type']
-        print('|'.join([str(v) for k, v in details.items() if k not in hidden_properties]))
+        string = ""
+        for key, value in details.items():
+            if key in hidden_properties:
+                continue
+            if key == 'description':
+                string += value[:100]
+            elif key == 'status':
+                string += format_status(value)
+            else:
+                string += str(value)
+            string += "|"
+        print(string.strip("|"))
 
     @staticmethod
     def format_project_details(project):
@@ -17,6 +32,7 @@ class PipeFormatter:
     @staticmethod
     def format_issue_details(issue):
         PipeFormatter._print_headline(issue['subject'])
+        print('Id: {name}'.format(name=issue['id']))
         if issue['description'] == '':
             print('-- No description --')
         else:
@@ -24,8 +40,8 @@ class PipeFormatter:
         print()
         print()
         print('Project: {name} ({id})'.format(name=issue['project']['name'], id=issue['project']['id']))
-        print('Tracker: {name}'.format(name=issue['tracker']['name']))
-        print('Status: {name}'.format(name=issue['status']['name']))
+        print('Tracker: {name}'.format(name=format_tracker(issue['tracker']['name'])))
+        print('Status: {name}'.format(name=format_status(issue['status']['name'])))
         print('Priority: {name}'.format(name=issue['priority']['name']))
         print('Author: {name}'.format(name=issue['author']['name']))
         print('Assignee: {name}'.format(name=issue['assigned_to']['name']))
@@ -115,9 +131,8 @@ class LinkFormatter:
         print(self.client._get_url('time_entries', entry['id']))
 
 class AgileFormatter:
-    def __init__(self, table_width: int, color_palette):
+    def __init__(self, table_width: int):
         self.table_width = table_width
-        self.color_palette = color_palette
 
     def format(self, by_assignee) -> None:
         for name, status_list in by_assignee.items():
@@ -126,8 +141,7 @@ class AgileFormatter:
             width_per_column = self.table_width // len(keys)
             print('|', end='')
             for current_status in keys:
-                color = self.color_palette[current_status]
-                print(color + current_status.center(width_per_column)+'|', end='')
+                print(format_status(current_status.center(width_per_column)) + '|', end='')
             print('\033[0m')
 
             format_string_for_column = '{0:<' + str(width_per_column)+ '}|'

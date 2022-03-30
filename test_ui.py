@@ -38,7 +38,8 @@ class TestUi(unittest.TestCase):
 
     @mock.patch('builtins.print')
     @mock.patch('builtins.input')
-    def test_selecting_element_from_list(self, input_mock, print_mock):
+    def test_selecting_element_from_list_with_integer(self, input_mock,
+                                                      print_mock):
         input_mock.return_value = '3'
 
         options = {f"{i}": f"Label for {i}" for i in range(5)}

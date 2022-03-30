@@ -7,7 +7,6 @@ from clients.utils import BadRequest, curry_with_filters, iterate_response
 from credentials import get_credentials
 from formatter import AgileFormatter, AgileFormatter, LinkFormatter, PipeFormatter
 from ui import select_project, select_from_list
-import config
 
 from typing import Optional
 
@@ -15,7 +14,7 @@ formatter = PipeFormatter()
 [url, username, password] = get_credentials()
 
 
-def open_editor(default_text: str) -> str:
+def open_editor(default_text: bytes) -> str:
     import tempfile, os
     from subprocess import call
 
@@ -108,7 +107,6 @@ def create_new_ticket(rm: IssueClient, project_id: Optional[str],
 
     if project_id is None:
         project_id = select_project(ProjectClient(username, password, url))
-        exit(2)
 
     if tracker_id is None:
         tracker_id = select_from_list(
@@ -133,9 +131,9 @@ def handle_issues(args) -> None:
         filters = parse_filters_for_issues(args)
         for item in iterate_response(
                 curry_with_filters(rm.get_issues, filters), 'issues'):
-            description = item['description'].strip().replace("\n",
-                                                              "\\n").replace(
-                                                                  '\r', '')
+            description = item['description']\
+                    .strip().replace("\n", "\\n").replace( '\r', '')
+
             summary = {
                 "type": "issues",
                 "id": item['id'],
@@ -176,23 +174,14 @@ def handle_agile(args) -> None:
     table_formatter.format(by_assignee)
 
 
-naming_conventions = {
-    'title':
-    lambda issue: issue['subject'],
-    'feature':
-    lambda issue: f"{issue['tracker']['name'].lower()}-{issue['id']}",
-    'b24':
-    lambda issue:
-    f"{issue['project']['name'].split(' ')[-1].upper()}-{issue['id']}-{issue['subject']}"
-}
-
-
 def handle_branch(args):
+    from config import naming_conventions
+
     rm = IssueClient(username, password, url)
     issue = rm.get_issue(args.issue_id)['issue']
 
-    branch_name = naming_conventions[args.naming_convention](issue).replace(
-        ' ', '_')
+    branch_name = naming_conventions[args.naming_convention](issue)\
+            .replace( ' ', '_')
 
     if args.dir is not None:
         print("Not implemented yet")

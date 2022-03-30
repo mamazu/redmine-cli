@@ -17,3 +17,13 @@ color_palette = {
     },
     'reset': colorama.Back.RESET + colorama.Fore.RESET
 }
+
+naming_conventions = {
+    'title':
+    lambda issue: issue['subject'],
+    'feature':
+    lambda issue: f"{issue['tracker']['name'].lower()}-{issue['id']}",
+    'b24':
+    lambda issue:
+    f"{issue['project']['name'].split(' ')[-1].upper()}-{issue['id']}-{issue['subject']}"
+}

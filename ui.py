@@ -4,8 +4,11 @@ from typing import Dict, Optional
 import config
 
 def select_from_list(options: Dict[str, str]) -> Optional[str]:
+    if len(options) == 0:
+        return None
+
     while True:
-        for key, entry in options:
+        for key, entry in options.items():
             print(f"{key}) {entry}")
 
         try:
@@ -13,17 +16,17 @@ def select_from_list(options: Dict[str, str]) -> Optional[str]:
         except KeyboardInterrupt:
             return None
 
-        for key, _ in options:
-            if selected_key == str(key):
+        for key, _ in options.items():
+            if selected_key == key:
                 return key
         print('Could not find an option for the provided input. Try again!')
 
-def select_project(client: ProjectClient) -> str:
+def select_project(client: ProjectClient) -> Optional[str]:
     project_list = dict({
-            project['id']: f"{project['name']} - {project['description'][:100]}"
-            for a in iterate_response(client.get_projects, 'projects', auto_confirm=True)
-        })
-    select_from_list(project_list)
+        str(project['id']): f"{project['name']} - {project['description'][:100]}"
+        for project in iterate_response(client.get_projects, 'projects', auto_confirm=True)
+    })
+    return select_from_list(project_list)
 
 def format_status(status: str) -> str:
     color = config.color_palette['status'][status.strip()]

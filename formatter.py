@@ -9,8 +9,6 @@ class PipeFormatter:
 
     @staticmethod
     def print_summary(details: dict) -> None:
-        import colorama
-
         hidden_properties = ['identifier', 'type']
         string = ""
         for key, value in details.items():

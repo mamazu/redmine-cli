@@ -21,41 +21,35 @@ class PipeFormatter:
             else:
                 string += str(value)
             string += "|"
-        print(string.strip("|"))
+        print(string.rstrip("|"))
 
     @staticmethod
     def format_project_details(project):
-        print('Name: {name} ({id})'.format(name=project['name'],
-                                           id=project['identifier']))
-        print('Parent: {name} ({id})'.format(name=project['parent']['name'],
-                                             id=project['parent']['id']))
-        print('Status: ' + str(project['status']))
+        parent_project = project['parent']
+        print(f"Name: {parent_project['name']} ({parent_project['id']})\nStatus: {project['status']}")
 
     @staticmethod
     def format_issue_details(issue):
         PipeFormatter._print_headline(issue['subject'])
-        print('Id: {name}'.format(name=issue['id']))
         if issue['description'] == '':
-            print('-- No description --')
-        else:
-            print('Description:\n' + issue['description'])
-        print()
-        print()
-        print('Project: {name} ({id})'.format(name=issue['project']['name'],
-                                              id=issue['project']['id']))
-        print('Tracker: {name}'.format(
-            name=format_tracker(issue['tracker']['name'])))
-        print('Status: {name}'.format(
-            name=format_status(issue['status']['name'])))
-        print('Priority: {name}'.format(name=issue['priority']['name']))
-        print('Author: {name}'.format(name=issue['author']['name']))
-        print('Assignee: {name}'.format(name=issue['assigned_to']['name']))
+            issue['description'] = '-- No description --'
+        print(f"""
+Id: {issue['id']}
+Description: {issue['description']}
+
+
+Project: {issue['project']['name']} ({issue['project']['id']})
+Tracker: {issue['tracker']['name']}
+Status: {format_status(issue['status']['name'])}
+
+Priority: {issue['priority']['name']}
+Author: {issue['author']['name']}
+Assignee: {issue['assigned_to']['name']}
+        """)
         if 'estimated_hours' in issue:
-            print('Estimated hours: {name}'.format(
-                name=issue['estimated_hours']))
-        print('Spent hours: {name}'.format(name=issue.get('spent_hours', 0)))
-        print()
-        print('Comments:')
+            print(f"Estimated hours: {issue['estimated_hours']}")
+
+        print(f"Spent hours: {issue.get('spent_hours', 0)}\nComments:")
         for issue_comment in issue.get('journals', []):
             if issue_comment['notes'] == '':
                 PipeFormatter._format_details(issue_comment['details'])
@@ -80,11 +74,9 @@ class PipeFormatter:
 
     @staticmethod
     def format_user_details(user):
-        print('User: {name} ({id})'.format(name=user['login'], id=user['id']))
-        print('Name: {firstName} {lastName}'.format(
-            firstName=user['firstname'], lastName=user['lastname']))
-        print(
-            'Last login: {lastLogin}'.format(lastLogin=user['last_login_on']))
+        print(f"User: {user['login']} ({user['id']})")
+        print(f"Name: {user['firstname']} {user['lastname']}")
+        print(f"Last login: {user['last_login_on']}")
         print()
 
         PipeFormatter._print_headline('Memberships')
@@ -97,7 +89,7 @@ class PipeFormatter:
                 else:
                     roles.append(role['name'])
 
-            print('Project: {name}'.format(name=membership['project']['name']))
+            print(f"Project: {membership['project']['name']}")
             print('Roles: {roles}'.format(roles=' | '.join(roles)))
             print()
 
@@ -109,15 +101,16 @@ class PipeFormatter:
         issue = None
         if 'issue' in entry:
             issue = entry['issue']['id']
+        comment = entry['comments'] if entry['comments'] != '' else '---'
 
         info = [
-            str(entry['id']), '{name} ({id})'.format(name=project['name'],
-                                                     id=project['id']),
-            str(issue), '{name} ({id})'.format(name=user['name'],
-                                               id=user['id']),
-            '{name} ({id})'.format(name=activity['name'], id=activity['id']),
+            str(entry['id']),
+            f'{project["name"]} ({project["id"]})',
+            str(issue),
+            f'{user["name"]} ({user["id"]})',
+            f'{activity["name"]} ({activity["id"]})',
             str(entry['hours']),
-            entry['comments'] if entry['comments'] != '' else '---'
+            comment
         ]
         print('|'.join(info))
 
